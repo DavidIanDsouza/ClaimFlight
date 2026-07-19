@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" href="/favicon.ico" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ClaimFlight — Automated Flight Delay Compensation</title>
+  <meta name="description" content="Automated statutory restitution for flight delay passengers. Know your rights, generate your demand letter, and get compensated." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:           #05080f;
+      --surface:      #0b1120;
+      --surface-2:    #111b2e;
+      --surface-3:    #172236;
+      --border:       #1b2d47;
+      --border-light: #243c5c;
+      --text:         #dde6f2;
+      --text-muted:   #607d9f;
+      --text-dim:     #2e4460;
+      --navy:         #0a1628;
+      --accent:       #1a56db;
+      --accent-hover: #2563eb;
+      --accent-light: rgba(26,86,219,0.12);
+      --accent-glow:  0 0 24px rgba(26,86,219,0.25);
+      --green:        #10b981;
+      --amber:        #f59e0b;
+      --red:          #ef4444;
+      --purple:       #8b5cf6;
+      --font:  'Inter', sans-serif;
+      --mono:  'DM Mono', monospace;
+      --radius: 10px;
+      --radius-lg: 14px;
+      --shadow: 0 4px 32px rgba(0,0,0,0.6);
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.6; font-size: 15px; }
+    body::before { content: ''; position: fixed; inset: 0; background-image: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(26,86,219,0.06), transparent); pointer-events: none; z-index: 0; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 28px; position: relative; z-index: 1; }
+
+    /* Partner bar */
+    .top-banner { background: var(--navy); border-bottom: 1px solid var(--border); padding: 7px 0; }
+    .top-banner .container { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .partner-list { display: flex; align-items: center; gap: 20px; }
+    .partner-chip { display: flex; align-items: center; gap: 6px; color: var(--text-muted); font-size: 0.68rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.6px; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .dot-blue  { background: var(--accent); }
+    .dot-green { background: var(--green); }
+    .dot-amber { background: var(--amber); }
+
+    /* Header */
+    header { background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; gap: 16px; }
+    .logo-group { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .logo-img {
+      height: 38px;
+      width: auto;
+      display: block;
+      border-radius: 6px;
+      mix-blend-mode: screen;
+      opacity: 0.95;
+      transition: opacity 0.2s;
+    }
+    .logo-img:hover {
+      opacity: 1;
+    }
+    .logo-text h1 { font-size: 1.2rem; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+    .logo-text span { font-size: 0.65rem; font-weight: 500; color: var(--text-muted); letter-spacing: 0.5px; text-transform: uppercase; display: block; margin-top: 1px; }
+    .main-nav { display: flex; align-items: center; gap: 2px; }
+    .nav-link { padding: 8px 16px; border-radius: 8px; font-size: 0.82rem; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all 0.18s; border: 1px solid transparent; background: none; font-family: var(--font); letter-spacing: 0.1px; }
+    .nav-link:hover { color: var(--text); background: var(--surface-2); }
+    .nav-link.active { color: white; background: var(--accent-light); border-color: rgba(26,86,219,0.25); }
+
+    /* Hero */
+    .hero-strip { background: linear-gradient(180deg, var(--surface-2) 0%, var(--bg) 100%); border-bottom: 1px solid var(--border); padding: 32px 0 28px; }
+    .hero-strip h2 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.5px; line-height: 1.3; color: var(--text); max-width: 560px; }
+    .hero-strip h2 em { font-style: normal; background: linear-gradient(90deg, #60a5fa, #3b82f6, #1d4ed8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-strip p { margin-top: 8px; font-size: 0.88rem; color: var(--text-muted); max-width: 500px; }
+    .hero-meta { display: flex; align-items: center; gap: 20px; margin-top: 20px; }
+    .meta-stat { display: flex; flex-direction: column; gap: 1px; }
+    .meta-stat strong { font-size: 1.1rem; font-weight: 700; color: var(--text); }
+    .meta-stat span { font-size: 0.68rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .meta-divider { width: 1px; height: 32px; background: var(--border); }
+
+    /* Tabs */
+    .tab-panel { display: none; padding: 32px 0 48px; }
+    .tab-panel.active { display: block; animation: fadeIn 0.3s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Cards */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 20px; }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+    .card-title { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.9px; display: flex; align-items: center; gap: 8px; }
+    .card-title-icon { width: 15px; height: 15px; stroke: var(--accent); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .step-badge { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: white; font-size: 0.65rem; font-weight: 700; flex-shrink: 0; }
+
+    /* Inputs */
+    .input-grid { display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: start; }
+    @media (max-width: 860px) { .input-grid { grid-template-columns: 1fr; } }
+    .input-label { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px; display: block; }
+    textarea.field { width: 100%; min-height: 210px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-family: var(--mono); font-size: 0.77rem; line-height: 1.75; padding: 14px 16px; resize: vertical; transition: border-color 0.2s, box-shadow 0.2s; outline: none; }
+    textarea.field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(26,86,219,0.12); }
+    textarea.field::placeholder { color: var(--text-dim); }
+    input.field-sm { width: 100%; max-width: 280px; padding: 8px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--mono); font-size: 0.8rem; outline: none; transition: border-color 0.2s; }
+    input.field-sm:focus { border-color: var(--accent); }
+
+    /* Sample panel */
+    .sample-panel { display: flex; flex-direction: column; gap: 8px; }
+    .sample-label { font-size: 0.68rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+    .sample-btn { width: 100%; text-align: left; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 0.76rem; font-family: var(--font); padding: 10px 14px; cursor: pointer; transition: all 0.18s; line-height: 1.45; }
+    .sample-btn:hover { background: var(--surface-3); border-color: var(--border-light); }
+    .sample-route { font-weight: 600; display: block; color: var(--text); }
+    .sample-meta { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; display: block; }
+    .jflag { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+    .jflag-ca { background: #ef4444; }
+    .jflag-eu { background: #3b82f6; }
+    .jflag-us { background: #f59e0b; }
+
+    /* Buttons */
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 8px; font-family: var(--font); font-size: 0.83rem; font-weight: 600; cursor: pointer; transition: all 0.18s; border: none; letter-spacing: 0.2px; text-decoration: none; white-space: nowrap; }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); box-shadow: var(--accent-glow); transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
+    .btn-ghost:hover { color: var(--text); border-color: var(--border-light); background: var(--surface-2); }
+    .btn-success { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+    .btn-success:hover { background: rgba(16,185,129,0.22); transform: translateY(-1px); }
+    .btn-sm { padding: 6px 14px; font-size: 0.74rem; }
+    .action-row { display: flex; align-items: center; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+    .upload-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+    .upload-label { font-size: 0.73rem; color: var(--text-muted); }
+    #selected-file-label { font-family: var(--mono); font-size: 0.72rem; color: var(--green); }
+
+    /* Spinner */
+    .spinner { display: none; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.25); border-top-color: white; border-radius: 50%; animation: spin 0.75s linear infinite; flex-shrink: 0; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner.show { display: inline-block; }
+    #status-msg { font-size: 0.77rem; color: var(--text-muted); }
+
+    /* Results */
+    #results-section { display: none; }
+    #results-section.show { display: block; animation: fadeIn 0.4s ease-out; }
+
+    /* Jurisdiction strip */
+    .jurisdiction-strip { border-radius: var(--radius); padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    .js-canada { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); }
+    .js-europe { background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.2); }
+    .js-usa    { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); }
+    .js-left { display: flex; align-items: center; gap: 10px; }
+    .js-badge-pill { padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; }
+    .jp-canada { background: rgba(239,68,68,0.15); color: #f87171; }
+    .jp-europe { background: rgba(59,130,246,0.15); color: #60a5fa; }
+    .jp-usa    { background: rgba(245,158,11,0.15); color: #fbbf24; }
+    .js-jurisdiction { font-weight: 600; font-size: 0.88rem; }
+    .js-reg { font-size: 0.77rem; color: var(--text-muted); }
+    .claim-id-pill { display: inline-flex; align-items: center; gap: 6px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 5px 12px; font-family: var(--mono); font-size: 0.74rem; color: var(--text-muted); }
+    .claim-id-pill strong { color: #60a5fa; }
+
+    /* Grid */
+    .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 780px) { .results-grid { grid-template-columns: 1fr; } }
+
+    /* Entitlement */
+    .entitlement-card { background: var(--surface-2); border: 1px solid var(--border-light); border-radius: var(--radius-lg); padding: 28px 24px; text-align: center; margin-bottom: 20px; position: relative; overflow: hidden; }
+    .entitlement-card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(26,86,219,0.08), transparent); pointer-events: none; }
+    .ent-eyebrow { font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 10px; }
+    .ent-amount { font-size: 3.2rem; font-weight: 800; letter-spacing: -2.5px; line-height: 1; color: var(--text); }
+    .ent-currency { font-size: 1rem; font-weight: 600; color: var(--text-muted); margin-top: 6px; }
+    .ent-divider { width: 40px; height: 2px; background: var(--accent); margin: 14px auto; border-radius: 2px; }
+    .ent-regulation { font-size: 0.72rem; color: var(--text-dim); }
+
+    /* KV table */
+    .kv-table { width: 100%; border-collapse: collapse; }
+    .kv-table tr { border-bottom: 1px solid var(--border); }
+    .kv-table tr:last-child { border-bottom: none; }
+    .kv-table td { padding: 9px 0; font-size: 0.8rem; }
+    .kv-table td:first-child { color: var(--text-muted); width: 45%; font-weight: 500; }
+    .kv-table td:last-child { color: var(--text); font-family: var(--mono); font-size: 0.76rem; text-align: right; }
+
+    /* Regulation quote */
+    .regulation-quote { background: var(--surface-2); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 18px; font-size: 0.77rem; line-height: 1.75; color: var(--text-muted); }
+
+    /* Breakdown */
+    .breakdown-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 0.81rem; }
+    .breakdown-row:last-child { border-bottom: none; }
+    .breakdown-row.total { font-weight: 700; font-size: 0.92rem; color: var(--text); padding-top: 13px; margin-top: 4px; border-top: 2px solid var(--border-light); }
+    .breakdown-row span:last-child { font-family: var(--mono); }
+    .breakdown-row.total span:last-child { color: #60a5fa; }
+
+    /* Stay22 */
+    .stay22-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--surface-3); border-bottom: 1px solid var(--border); font-size: 0.72rem; color: var(--text-muted); font-weight: 500; }
+    .stay22-header strong { color: var(--amber); }
+    .stay22-iframe-el { width: 100%; height: 420px; border: none; display: block; }
+    .stay22-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--surface-2); font-size: 0.8rem; color: var(--text-muted); gap: 10px; }
+
+    /* Ledger */
+    .ledger-wrap { overflow-x: auto; }
+    .ledger-table { width: 100%; border-collapse: collapse; font-size: 0.79rem; }
+    .ledger-table th { background: var(--surface-2); color: var(--text-muted); font-weight: 600; font-size: 0.67rem; text-transform: uppercase; letter-spacing: 0.9px; padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+    .ledger-table td { padding: 11px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .ledger-table tr:last-child td { border-bottom: none; }
+    .ledger-table tr:hover td { background: var(--surface-2); }
+    .mono { font-family: var(--mono); font-size: 0.74rem; color: var(--text-muted); }
+
+    /* Status pills */
+    .status-pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase; }
+    .s-pending  { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+    .s-disputed { background: rgba(239,68,68,0.12);  color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+    .s-settled  { background: rgba(16,185,129,0.1);  color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
+    .s-review   { background: rgba(139,92,246,0.12); color: #a78bfa; border: 1px solid rgba(139,92,246,0.25); }
+    .s-default  { background: var(--surface-3); color: var(--text-muted); border: 1px solid var(--border); }
+
+    /* Empty state */
+    .empty-state { text-align: center; padding: 52px 24px; color: var(--text-dim); }
+    .empty-icon { width: 42px; height: 42px; stroke: var(--text-dim); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; margin: 0 auto 14px; display: block; }
+    .empty-state p { font-size: 0.83rem; color: var(--text-muted); }
+    .empty-state small { font-size: 0.72rem; color: var(--text-dim); display: block; margin-top: 4px; }
+
+    /* How it works */
+    .step-list { display: flex; flex-direction: column; }
+    .step-item { display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--border); }
+    .step-item:last-child { border-bottom: none; }
+    .step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--accent-light); border: 1px solid rgba(26,86,219,0.3); color: #60a5fa; font-size: 0.72rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+    .step-content strong { display: block; font-size: 0.88rem; color: var(--text); margin-bottom: 4px; }
+    .step-content p { font-size: 0.78rem; color: var(--text-muted); line-height: 1.65; }
+
+    /* Regulation table */
+    .reg-table { width: 100%; border-collapse: collapse; }
+    .reg-table tr { border-bottom: 1px solid var(--border); }
+    .reg-table tr:last-child { border-bottom: none; }
+    .reg-table td { padding: 9px 12px; font-size: 0.78rem; }
+    .reg-table .reg-label { color: var(--text-muted); }
+    .reg-jur { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 3px 8px; border-radius: 4px; }
+    .rj-ca { background: rgba(239,68,68,0.1); color: #f87171; }
+    .rj-eu { background: rgba(59,130,246,0.1); color: #60a5fa; }
+    .rj-us { background: rgba(245,158,11,0.1); color: #fbbf24; }
+    .reg-amount { font-family: var(--mono); font-size: 0.78rem; text-align: right; }
+
+    /* Toast */
+    #toast { position: fixed; bottom: 24px; right: 24px; background: var(--surface-3); border: 1px solid var(--border-light); border-radius: var(--radius); padding: 12px 18px; font-size: 0.8rem; color: var(--text); box-shadow: var(--shadow); transform: translateY(16px); opacity: 0; transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1); z-index: 9999; max-width: 340px; }
+    #toast.show { transform: translateY(0); opacity: 1; }
+
+    /* Utilities */
+    .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+    .text-muted { color: var(--text-muted); }
+    .text-blue  { color: #60a5fa; }
+    .text-green { color: var(--green); }
+    .text-amber { color: var(--amber); }
+    .text-mono  { font-family: var(--mono); font-size: 0.76rem; }
+    .flex-between { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .mt-8  { margin-top: 8px; }
+    .mt-16 { margin-top: 16px; }
+    .mt-20 { margin-top: 20px; }
+
+    /* Footer */
+    footer { border-top: 1px solid var(--border); background: var(--surface); padding: 24px 0; margin-top: 32px; }
+    .footer-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .footer-brand { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); }
+    .footer-links { display: flex; gap: 20px; font-size: 0.72rem; }
+    .footer-links a { color: var(--text-muted); text-decoration: none; transition: color 0.18s; }
+    .footer-links a:hover { color: var(--text); }
+    .footer-disclaimer { width: 100%; font-size: 0.67rem; color: var(--text-dim); margin-top: 8px; }
+
+    #rebut-analysis-box { font-size: 0.8rem; line-height: 1.7; color: var(--text-muted); }
+    #rebut-analysis-box h3 { font-size: 0.85rem; color: var(--text); margin: 10px 0 4px; }
+  </style>
+</head>
+<body>
+
+<!-- Partner bar -->
+<div class="top-banner">
+  <div class="container">
+    <div class="partner-list">
+      <div class="partner-chip"><div class="dot dot-blue"></div>OpenRouter AI</div>
+      <div class="partner-chip"><div class="dot dot-green"></div>Stay22 Hotels</div>
+      <div class="partner-chip"><div class="dot dot-amber"></div>Chexy Payments</div>
+    </div>
+    <div style="color:var(--text-dim);font-size:0.68rem;">Hack the 6ix 2026 &mdash; Aviation Passenger Rights Platform</div>
+  </div>
+</div>
+
+<!-- Header -->
+<header>
+  <div class="container">
+    <div class="header-inner">
+      <a href="/" class="logo-group">
+        <img src="/ClaimFlightDark.png" alt="ClaimFlight" class="logo-img" />
+        <div class="logo-text">
+          <h1>ClaimFlight</h1>
+          <span>Automated Passenger Rights Engine</span>
+        </div>
+      </a>
+      <nav class="main-nav" role="navigation" aria-label="Main navigation">
+        <button class="nav-link active" id="tab-extract" onclick="switchTab('extract')">Extract &amp; Claim</button>
+        <button class="nav-link" id="tab-rebut"   onclick="switchTab('rebut')">Dispute Rebuttal</button>
+        <button class="nav-link" id="tab-ledger"  onclick="switchTab('ledger')">Payment Ledger</button>
+        <button class="nav-link" id="tab-about"   onclick="switchTab('about')">How It Works</button>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<!-- Hero strip -->
+<div class="hero-strip" id="hero-strip">
+  <div class="container">
+    <h2>Your flight was delayed.<br><em>Get what you are owed.</em></h2>
+    <p>Paste your airline disruption email and receive an AI-generated statutory demand letter with full legal backing in seconds.</p>
+    <div class="hero-meta">
+      <div class="meta-stat"><strong>3</strong><span>Jurisdictions</span></div>
+      <div class="meta-divider"></div>
+      <div class="meta-stat"><strong>$1,550</strong><span>Max entitlement</span></div>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div class="container">
+
+    <!-- Tab: Extract -->
+    <div class="tab-panel active" id="panel-extract">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><span class="step-badge">1</span>Paste Disruption Email or Upload Boarding Pass</div>
+        </div>
+        <div class="input-grid">
+          <div>
+            <label class="input-label" for="email-input">Airline Email Content</label>
+            <textarea id="email-input" class="field" placeholder="Paste your airline delay or cancellation notification here...
+
+Example:
+Dear valued passenger, Air Canada flight AC123 from Toronto Pearson (CYYZ) to Vancouver (CYVR) on July 20, 2026 has been delayed by 10 hours due to operational disruption."></textarea>
+            <div class="upload-row">
+              <span class="upload-label">Or upload a ticket / boarding pass image:</span>
+              <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="handleFileSelect(this)" />
+              <button class="btn btn-ghost btn-sm" onclick="document.getElementById('file-input').click()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Choose File
+              </button>
+              <span id="selected-file-label"></span>
+            </div>
+          </div>
+          <div class="sample-panel">
+            <div class="sample-label">Load a Sample Case</div>
+            <button class="sample-btn" onclick="loadSample('canada')">
+              <span class="sample-route"><span class="jflag jflag-ca"></span>Air Canada &mdash; CYYZ to CYVR</span>
+              <span class="sample-meta">10-hour delay &middot; APPR Section 19 &middot; $1,000 CAD</span>
+            </button>
+            <button class="sample-btn" onclick="loadSample('europe')">
+              <span class="sample-route"><span class="jflag jflag-eu"></span>Lufthansa &mdash; EDDF to EGLL</span>
+              <span class="sample-meta">Cancelled &middot; EU Regulation 261/2004 &middot; &euro;600</span>
+            </button>
+            <button class="sample-btn" onclick="loadSample('usa')">
+              <span class="sample-route"><span class="jflag jflag-us"></span>Delta Air Lines &mdash; KATL to KLAX</span>
+              <span class="sample-meta">7-hour delay &middot; US DOT 14 CFR 250 &middot; $1,550 USD</span>
+            </button>
+            <button class="sample-btn" onclick="loadSample('canada2')">
+              <span class="sample-route"><span class="jflag jflag-ca"></span>WestJet &mdash; CYYC to CYUL</span>
+              <span class="sample-meta">4-hour delay &middot; APPR Section 19 &middot; $400 CAD</span>
+            </button>
+          </div>
+        </div>
+        <div class="action-row">
+          <button class="btn btn-primary" id="extract-btn" onclick="runExtraction()">
+            <div class="spinner" id="spinner"></div>
+            <span id="btn-text">Analyze My Claim</span>
+          </button>
+          <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+          <span id="status-msg"></span>
+        </div>
+      </div>
+
+      <div id="results-section">
+        <div class="flex-between" style="margin-bottom:16px;">
+          <div id="jurisdiction-badge" class="jurisdiction-strip"></div>
+          <div class="claim-id-pill">Claim ID: <strong id="claim-id-display"></strong></div>
+        </div>
+        <div class="results-grid">
+          <div>
+            <div class="entitlement-card">
+              <div class="ent-eyebrow">Statutory Entitlement</div>
+              <div class="ent-amount" id="entitlement-amount">$0</div>
+              <div class="ent-currency" id="entitlement-currency"></div>
+              <div class="ent-divider"></div>
+              <div class="ent-regulation" id="entitlement-reg"></div>
+            </div>
+            <div class="card">
+              <div class="card-header" style="margin-bottom:14px;padding-bottom:12px;">
+                <div class="card-title">
+                  <svg class="card-title-icon" viewBox="0 0 24 24"><path d="M21 16l-3-3H9l-3-3H3l3 3h3l-3 4h2l3-4h3l2 4h2l-1-4h2l2 3z"/></svg>
+                  Flight Details
+                </div>
+              </div>
+              <table class="kv-table" id="flight-table"></table>
+            </div>
+            <div class="card">
+              <div class="card-header" style="margin-bottom:14px;padding-bottom:12px;">
+                <div class="card-title">
+                  <svg class="card-title-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                  Claim Breakdown
+                </div>
+              </div>
+              <div id="breakdown-rows"></div>
+              <div class="action-row mt-16">
+                <a id="pdf-download-btn" class="btn btn-primary" href="#" target="_blank">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                  Download Demand Letter
+                </a>
+                <a id="stay22-book-btn" class="btn btn-success" href="#" target="_blank">Book Emergency Hotel</a>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="card">
+              <div class="card-header" style="margin-bottom:14px;padding-bottom:12px;">
+                <div class="card-title">
+                  <svg class="card-title-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  Applicable Regulation
+                </div>
+              </div>
+              <div class="regulation-quote" id="regulation-text"></div>
+            </div>
+            <div class="card" style="padding:0;overflow:hidden;position:relative;">
+              <div class="stay22-header">
+                <span>Emergency Accommodation &mdash; <span id="stay22-city-label">City</span></span>
+                <strong>Stay22</strong>
+              </div>
+              <div style="position:relative;">
+                <iframe id="stay22-iframe" src="about:blank" loading="lazy" allow="geolocation"
+                        class="stay22-iframe-el"
+                        onload="document.getElementById('stay22-loading').style.display='none'"></iframe>
+                <div class="stay22-loading" id="stay22-loading">
+                  <div class="spinner show" style="border-top-color:var(--accent);border-color:var(--border-light);"></div>
+                  Loading hotel availability...
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header" style="margin-bottom:14px;padding-bottom:12px;">
+                <div class="card-title">
+                  <svg class="card-title-icon" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                  Payment Ledger Entry
+                </div>
+              </div>
+              <table class="kv-table" id="ledger-preview-table"></table>
+              <div class="action-row mt-16">
+                <button class="btn btn-ghost" onclick="reconcileClaim()">Update Claim Status</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Rebut -->
+    <div class="tab-panel" id="panel-rebut">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <svg class="card-title-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Dispute Rebuttal Engine &mdash; Counter Airline Rejections
+          </div>
+        </div>
+        <div class="input-grid">
+          <div>
+            <label class="input-label" for="rebut-claim-id">Original Claim ID Reference</label>
+            <input type="text" id="rebut-claim-id" class="field-sm" placeholder="FDE-XXXX" style="margin-bottom:18px;" />
+            <label class="input-label" for="rejection-input">Paste Airline Rejection Email</label>
+            <textarea id="rejection-input" class="field" placeholder="Paste the airline's rejection notice here...
+
+Example:
+We have reviewed your flight delay claim. Unfortunately, we must deny compensation because the delay was caused by weather or extraordinary circumstances outside our control."></textarea>
+          </div>
+          <div class="sample-panel">
+            <div class="sample-label">Rejection Samples</div>
+            <button class="sample-btn" onclick="loadRebutSample('weather')">
+              <span class="sample-route">Weather Disruption Excuse</span>
+              <span class="sample-meta">APPR / EU261 meteorological counter-arguments</span>
+            </button>
+            <button class="sample-btn" onclick="loadRebutSample('safety')">
+              <span class="sample-route">Operational Safety / Mechanical</span>
+              <span class="sample-meta">Routine maintenance rebuttal framework</span>
+            </button>
+          </div>
+        </div>
+        <div class="action-row">
+          <button class="btn btn-primary" id="rebut-btn" onclick="runRebuttal()">
+            <div class="spinner" id="rebut-spinner"></div>
+            <span id="rebut-btn-text">Analyze &amp; Rebut</span>
+          </button>
+          <button class="btn btn-ghost" onclick="clearRebut()">Clear</button>
+        </div>
+      </div>
+      <div id="rebuttal-results" style="display:none;animation:fadeIn 0.4s ease-out;">
+        <div class="results-grid">
+          <div>
+            <div class="card">
+              <div class="card-header" style="margin-bottom:14px;padding-bottom:12px;">
+                <div class="card-title">Legal Loophole Analysis</div>
+              </div>
+              <div class="regulation-quote" id="rebut-analysis-box" style="border-left-color:var(--amber);"></div>
+              <div class="action-row mt-16">
+                <a id="rebut-pdf-btn" class="btn btn-primary" href="#" target="_blank">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  Download Rebuttal PDF
+                </a>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="card">
+              <div class="card-header" style="margin-bottom:14px;padding-bottom:12px;">
+                <div class="card-title">Rebuttal Letter Draft</div>
+              </div>
+              <textarea id="rebut-letter-preview" readonly class="field" style="min-height:340px;resize:vertical;"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Ledger -->
+    <div class="tab-panel" id="panel-ledger">
+      <div class="flex-between" style="margin-bottom:20px;">
+        <div>
+          <h2 style="font-size:1.15rem;font-weight:700;color:var(--text);">Payment Ledger</h2>
+          <p class="text-muted" style="font-size:0.8rem;margin-top:3px;">All synthetic claim records &mdash; resets on server restart</p>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="loadLedger()">Refresh</button>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div class="ledger-wrap">
+          <table class="ledger-table">
+            <thead>
+              <tr>
+                <th>Claim ID</th><th>Flight</th><th>Jurisdiction</th>
+                <th>Total Claim</th><th>Status</th><th>Created</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="ledger-tbody">
+              <tr><td colspan="7">
+                <div class="empty-state">
+                  <svg class="empty-icon" viewBox="0 0 24 24"><path d="M21 16l-3-3H9l-3-3H3l3 3h3l-3 4h2l3-4h3l2 4h2l-1-4h2l2 3z"/><line x1="3" y1="3" x2="21" y2="21"/></svg>
+                  <p>No claims on record</p>
+                  <small>Run an extraction first to generate your first claim.</small>
+                </div>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: About -->
+    <div class="tab-panel" id="panel-about">
+      <div class="results-grid">
+        <div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">How ClaimFlight Works</div>
+            </div>
+            <div class="step-list">
+              <div class="step-item">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                  <strong>AI-Powered Extraction</strong>
+                  <p>Your airline email is processed by a large language model via OpenRouter. It extracts the airline, flight number, departure and arrival airports, delay duration, and disruption date in structured JSON format.</p>
+                </div>
+              </div>
+              <div class="step-item">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                  <strong>Regulation Engine</strong>
+                  <p>The ICAO prefix of your departure airport determines jurisdiction. CY* routes to Canada (APPR &sect;19), European prefixes to EU Regulation 261/2004, and all others to US DOT 14 CFR 250.</p>
+                </div>
+              </div>
+              <div class="step-item">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                  <strong>Stay22 Hotel Integration</strong>
+                  <p>A live hotel search for your arrival city is embedded with your disruption date, providing immediate accommodation options with affiliate tracking.</p>
+                </div>
+              </div>
+              <div class="step-item">
+                <div class="step-num">4</div>
+                <div class="step-content">
+                  <strong>Demand Letter PDF</strong>
+                  <p>A formally worded statutory demand letter is generated citing the exact regulation, entitlement amount, accommodation URL, and bank payment instructions.</p>
+                </div>
+              </div>
+              <div class="step-item">
+                <div class="step-num">5</div>
+                <div class="step-content">
+                  <strong>Chexy Payment Ledger</strong>
+                  <p>A synthetic payment record is created with claim breakdown, routing and account numbers, and full dispute status tracking. Sandbox only &mdash; no real transfers.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Regulation Coverage</div>
+            </div>
+            <table class="reg-table">
+              <tr><td><span class="reg-jur rj-ca">Canada APPR</span></td><td class="reg-label">&sect;19 &mdash; 9 hours or more</td><td class="reg-amount text-muted">$1,000 CAD</td></tr>
+              <tr><td><span class="reg-jur rj-ca">Canada APPR</span></td><td class="reg-label">&sect;19 &mdash; 6 hours or more</td><td class="reg-amount text-muted">$700 CAD</td></tr>
+              <tr><td><span class="reg-jur rj-ca">Canada APPR</span></td><td class="reg-label">&sect;19 &mdash; 3 hours or more</td><td class="reg-amount text-muted">$400 CAD</td></tr>
+              <tr><td><span class="reg-jur rj-eu">EU 261/2004</span></td><td class="reg-label">Article 7 &mdash; Long-haul (&gt;3500 km)</td><td class="reg-amount text-muted">&euro;600</td></tr>
+              <tr><td><span class="reg-jur rj-eu">EU 261/2004</span></td><td class="reg-label">Article 7 &mdash; Medium haul</td><td class="reg-amount text-muted">&euro;400</td></tr>
+              <tr><td><span class="reg-jur rj-eu">EU 261/2004</span></td><td class="reg-label">Article 7 &mdash; Short haul (&lt;1500 km)</td><td class="reg-amount text-muted">&euro;250</td></tr>
+              <tr><td><span class="reg-jur rj-us">US DOT</span></td><td class="reg-label">14 CFR 250 &mdash; Severe (4h+ international)</td><td class="reg-amount text-muted">$1,550 USD</td></tr>
+              <tr><td><span class="reg-jur rj-us">US DOT</span></td><td class="reg-label">14 CFR 250 &mdash; Moderate (2h+ domestic)</td><td class="reg-amount text-muted">$650 USD</td></tr>
+            </table>
+          </div>
+          <div class="card mt-20">
+            <div class="card-header">
+              <div class="card-title">API Reference</div>
+            </div>
+            <table class="kv-table">
+              <tr><td>POST /api/extort/extract</td><td class="text-green">Full pipeline</td></tr>
+              <tr><td>GET &nbsp;/api/extort/pdf/{id}</td><td class="text-green">Download PDF</td></tr>
+              <tr><td>POST /api/extort/reconcile</td><td class="text-green">Update ledger</td></tr>
+              <tr><td>GET &nbsp;/api/extort/ledger</td><td class="text-green">List claims</td></tr>
+              <tr><td>GET &nbsp;/api/health</td><td class="text-green">Health check</td></tr>
+              <tr><td>GET &nbsp;/docs</td><td class="text-blue">Swagger UI</td></tr>
+            </table>
+          </div>
+          <div class="card mt-20" style="border-color:rgba(245,158,11,0.2);">
+            <div class="card-header" style="border-color:rgba(245,158,11,0.15);">
+              <div class="card-title" style="color:var(--amber);">Legal Disclaimer</div>
+            </div>
+            <p style="font-size:0.75rem;color:var(--text-muted);line-height:1.65;">ClaimFlight is a hackathon demonstration prototype and does not constitute legal advice. No real money is transferred. All banking details are synthetically generated for demonstration purposes only. Built at Hack the 6ix 2026.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-brand">ClaimFlight &mdash; Automated Passenger Rights Engine</div>
+      <div class="footer-links">
+        <a href="/docs" target="_blank">API Docs</a>
+        <a href="https://www.stay22.com" target="_blank">Stay22</a>
+        <a href="https://chexy.co" target="_blank">Chexy</a>
+        <a href="https://openrouter.ai" target="_blank">OpenRouter</a>
+      </div>
+      <div class="footer-disclaimer">Hack the 6ix 2026 &middot; No real legal or financial advice provided &middot; Demonstration only</div>
+    </div>
+  </div>
+</footer>
+
+<div id="toast"></div>
+
+<script>
+const SAMPLES = {
+  canada: `Dear valued passenger,\n\nWe regret to inform you that Air Canada flight AC123 from Toronto Pearson International Airport (CYYZ) to Vancouver International Airport (CYVR) originally scheduled for departure on July 20, 2026 at 08:30 AM ET has been delayed by 10 hours due to operational disruption caused by crew scheduling issues within our control.\n\nYour new estimated departure time is 6:30 PM ET. We apologize for the significant inconvenience this causes.\n\nRegards,\nAir Canada Customer Care`,
+  europe: `Dear Passenger,\n\nWe regret to inform you that Lufthansa flight LH1234 departing from Frankfurt Airport (EDDF) to London Heathrow (EGLL) on 15 August 2026 has been CANCELLED due to an air traffic control strike.\n\nWe will rebook you on the next available flight. Please contact our service desk for assistance.\n\nSincerely,\nLufthansa Airlines`,
+  usa: `Dear Delta SkyMiles Member,\n\nWe are writing to notify you that Delta Air Lines flight DL456 from Hartsfield-Jackson Atlanta International Airport (KATL) to Los Angeles International Airport (KLAX) on August 5, 2026 has been delayed by 7 hours due to mechanical issues discovered during pre-flight inspection.\n\nYour original departure was 9:00 AM; new departure is expected at 4:00 PM. We apologize for this inconvenience.\n\nDelta Customer Support`,
+  canada2: `Hello,\n\nWestJet flight WS789 from Calgary International (CYYC) to Montreal Pierre Elliott Trudeau Airport (CYUL) on September 10, 2026 is delayed by 4 hours. The delay is due to late arrival of the inbound aircraft, which is a situation within WestJet\'s operational control.\n\nEstimated departure: 2:30 PM MST (originally 10:30 AM MST).\n\nThank you for your patience.\nWestJet Guest Services`
+};
+const REBUT_SAMPLES = {
+  weather: `Dear customer,\n\nThank you for your claim request ref 987654. We have completed our investigation of your flight AC123. We must inform you that the delay was due to adverse meteorological conditions (weather) at the departure airport which affected flight safety. As a result, no compensation is payable under statutory air passenger regulations.\n\nSincerely,\nAir Canada Claims Dept`,
+  safety: `Dear Passenger,\n\nRegarding your claim for Lufthansa flight LH1234. We regret to inform you that your flight was delayed due to an unexpected safety issue involving a technical defect in the hydraulic system which required urgent maintenance prior to departure. Under EU Regulation 261/2004, technical anomalies constituting flight safety risks exempt carriers from liability. Your claim has been rejected.\n\nBest regards,\nLufthansa Customer Relations`
+};
+
+let currentClaimId = null;
+let selectedFile   = null;
+
+function switchTab(name) {
+  document.querySelectorAll('.nav-link').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('hero-strip').style.display = (name === 'extract') ? '' : 'none';
+  if (name === 'ledger') loadLedger();
+}
+
+function loadSample(key) {
+  document.getElementById('email-input').value = SAMPLES[key];
+  document.getElementById('file-input').value = '';
+  selectedFile = null;
+  document.getElementById('selected-file-label').textContent = '';
+  setStatus('Sample loaded — click Analyze My Claim');
+}
+
+function handleFileSelect(input) {
+  if (input.files && input.files[0]) {
+    selectedFile = input.files[0];
+    document.getElementById('selected-file-label').textContent = selectedFile.name;
+    document.getElementById('email-input').value = `[Image Upload: ${selectedFile.name} — click Analyze My Claim to parse this boarding pass using AI.]`;
+    setStatus('Boarding pass loaded — click Analyze My Claim');
+  }
+}
+
+function clearAll() {
+  document.getElementById('email-input').value = '';
+  document.getElementById('file-input').value = '';
+  selectedFile = null;
+  document.getElementById('selected-file-label').textContent = '';
+  setStatus('');
+  document.getElementById('results-section').classList.remove('show');
+  currentClaimId = null;
+}
+
+function loadRebutSample(key) {
+  document.getElementById('rejection-input').value = REBUT_SAMPLES[key];
+  if (currentClaimId) document.getElementById('rebut-claim-id').value = currentClaimId;
+}
+
+function clearRebut() {
+  document.getElementById('rejection-input').value = '';
+  document.getElementById('rebut-claim-id').value = '';
+  document.getElementById('rebuttal-results').style.display = 'none';
+}
+
+async function runExtraction() {
+  const emailText = document.getElementById('email-input').value.trim();
+  if (!selectedFile && !emailText) { showToast('Please paste an airline email or choose a boarding pass image.'); return; }
+  setLoading(true, selectedFile ? 'Analyzing image...' : 'Processing email...');
+  try {
+    let res;
+    if (selectedFile) {
+      const fd = new FormData(); fd.append('file', selectedFile);
+      res = await fetch('/api/extort/extract-image', { method: 'POST', body: fd });
+    } else {
+      res = await fetch('/api/extort/extract', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email_text: emailText }) });
+    }
+    if (!res.ok) { const err = await res.json(); throw new Error(err.detail || 'HTTP ' + res.status); }
+    const data = await res.json();
+    renderResults(data);
+    currentClaimId = data.claim_id;
+    document.getElementById('rebut-claim-id').value = currentClaimId;
+    showToast(data.extraction_source.includes('Fallback') ? 'Note: AI rate-limited. Analysis via local heuristics.' : 'Claim ' + data.claim_id + ' generated successfully.');
+  } catch (err) { setLoading(false); setStatus('Error: ' + err.message); showToast(err.message, true); }
+}
+
+async function runRebuttal() {
+  const claimId = document.getElementById('rebut-claim-id').value.trim();
+  const rejTxt  = document.getElementById('rejection-input').value.trim();
+  if (!claimId || !rejTxt) { showToast('Please provide a Claim ID and paste the rejection email.'); return; }
+  setRebutLoading(true, 'Analyzing rejection...');
+  try {
+    const res = await fetch('/api/extort/rebut', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ original_claim_id: claimId, rejection_text: rejTxt }) });
+    if (!res.ok) { const err = await res.json(); throw new Error(err.detail || 'HTTP ' + res.status); }
+    const data = await res.json();
+    setRebutLoading(false);
+    let html = data.loophole_analysis
+      .replace(/###\s+(.*)/g, '<h3>$1</h3>')
+      .replace(/-\s+\*\*(.*?)\*\*:(.*)/g, '<li><strong>$1</strong>:$2</li>')
+      .replace(/\n/g, '<br/>');
+    document.getElementById('rebut-analysis-box').innerHTML = html;
+    document.getElementById('rebut-letter-preview').value   = data.rebuttal_letter;
+    document.getElementById('rebut-pdf-btn').href           = data.pdf_download_url;
+    document.getElementById('rebuttal-results').style.display = 'block';
+    showToast('Rebuttal letter ' + data.rebut_id + ' generated.');
+  } catch (err) { setRebutLoading(false); showToast(err.message, true); }
+}
+
+function setRebutLoading(loading, msg = '') {
+  const btn = document.getElementById('rebut-btn'), sp = document.getElementById('rebut-spinner'), tx = document.getElementById('rebut-btn-text');
+  btn.disabled = loading; sp.classList.toggle('show', loading); tx.textContent = loading ? msg : 'Analyze & Rebut';
+}
+
+function renderResults(data) {
+  setLoading(false); setStatus('');
+  const fd = data.flight_details, ent = data.entitlement, led = data.ledger_entry;
+  document.getElementById('claim-id-display').textContent = data.claim_id;
+
+  const jBadge = document.getElementById('jurisdiction-badge');
+  const jMap = { 'Canada': { s: 'js-canada', p: 'jp-canada' }, 'Europe': { s: 'js-europe', p: 'jp-europe' }, 'USA': { s: 'js-usa', p: 'jp-usa' } };
+  const jKey = Object.keys(jMap).find(k => ent.jurisdiction.includes(k)) || 'USA';
+  const j = jMap[jKey];
+  jBadge.className = 'jurisdiction-strip ' + j.s;
+  jBadge.innerHTML = `<div class="js-left"><span class="js-badge-pill ${j.p}">${jKey}</span><span class="js-jurisdiction">${ent.jurisdiction}</span><span class="js-reg">&mdash; ${ent.regulation_name}</span></div>`;
+
+  document.getElementById('entitlement-amount').textContent = ent.entitlement_amount.toLocaleString('en-CA', { maximumFractionDigits: 0 });
+  document.getElementById('entitlement-currency').textContent = ent.entitlement_currency;
+  document.getElementById('entitlement-reg').textContent = ent.regulation_name;
+
+  const rows = [['Airline',fd.airline],['Flight',fd.flight_number],['Departure',fd.departure_airport],['Arrival',fd.arrival_airport],['Destination',fd.arrival_city],['Date',fd.original_departure_date],['Status',fd.cancellation?'CANCELLED':fd.delay_duration_hours+'h delay'],['Reason',fd.reason||'Not disclosed'],['Analysis Source',`<span style="color:${data.extraction_source==='Local Heuristic Fallback'?'var(--amber)':'var(--green)'}">${data.extraction_source}</span>`]];
+  document.getElementById('flight-table').innerHTML = rows.map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('');
+
+  document.getElementById('regulation-text').textContent = ent.regulation_text;
+
+  const bd = led.breakdown, curr = bd.total_claim_currency, fmt = n => n.toLocaleString('en-CA',{minimumFractionDigits:2});
+  document.getElementById('breakdown-rows').innerHTML = `
+    <div class="breakdown-row"><span>Statutory Entitlement</span><span>${fmt(bd.statutory_entitlement)} ${curr}</span></div>
+    <div class="breakdown-row"><span>Accommodation Relief</span><span>${fmt(bd.accommodation_relief)} ${curr}</span></div>
+    <div class="breakdown-row"><span>Meals &amp; Incidentals</span><span>${fmt(bd.meals_and_incidentals)} ${curr}</span></div>
+    <div class="breakdown-row"><span>Processing Fee</span><span>${fmt(bd.processing_fee)} ${curr}</span></div>
+    <div class="breakdown-row total"><span>Total Claim</span><span>${fmt(bd.total_claim)} ${curr}</span></div>
+  `;
+
+  document.getElementById('pdf-download-btn').href  = data.pdf_download_url;
+  document.getElementById('stay22-book-btn').href   = data.stay22_list_url;
+  document.getElementById('stay22-city-label').textContent = fd.arrival_city;
+  document.getElementById('stay22-loading').style.display  = 'flex';
+  document.getElementById('stay22-iframe').src             = data.stay22_embed_url;
+
+  const lRows = [['Claim ID',led.claim_id],['Passenger Ref',led.passenger_ref],['Institution',led.institution_name],['Routing No.',led.transit_routing],['Account No.','****'+led.account_number.slice(-4)],['Status',led.status]];
+  document.getElementById('ledger-preview-table').innerHTML = lRows.map(([k,v])=>`<tr><td>${k}</td><td>${v===led.status?`<span class="status-pill ${statusClass(v)}">${v}</span>`:v}</td></tr>`).join('');
+
+  document.getElementById('results-section').classList.add('show');
+  document.getElementById('results-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function reconcileClaim() {
+  if (!currentClaimId) { showToast('No active claim selected.'); return; }
+  const statuses = ['UNDER_REVIEW','DISPUTED','ESCALATED','APPROVED','SETTLED','CLOSED'];
+  const s = prompt('Update claim status for ' + currentClaimId + ':\n\n' + statuses.join('\n') + '\n\nEnter new status:');
+  if (!s) return;
+  try {
+    const res = await fetch('/api/extort/reconcile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ claim_id: currentClaimId, new_status: s }) });
+    if (!res.ok) throw new Error((await res.json()).detail);
+    const data = await res.json();
+    showToast('Status updated to ' + data.status);
+    loadLedger();
+  } catch (e) { showToast(e.message, true); }
+}
+
+async function loadLedger() {
+  try {
+    const res = await fetch('/api/extort/ledger');
+    const entries = await res.json();
+    const tbody = document.getElementById('ledger-tbody');
+    if (!entries.length) {
+      tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><svg class="empty-icon" viewBox="0 0 24 24"><path d="M21 16l-3-3H9l-3-3H3l3 3h3l-3 4h2l3-4h3l2 4h2l-1-4h2l2 3z"/><line x1="3" y1="3" x2="21" y2="21"/></svg><p>No claims on record</p><small>Run an extraction first to generate your first claim.</small></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = entries.map(e => {
+      const bd = e.breakdown, curr = bd.total_claim_currency;
+      const jLabel = e.notes.includes('Canada') ? 'Canada' : e.notes.includes('Europe') ? 'Europe' : 'USA';
+      const jCls   = jLabel==='Canada' ? 'rj-ca' : jLabel==='Europe' ? 'rj-eu' : 'rj-us';
+      return `<tr>
+        <td><span class="mono">${e.claim_id}</span></td>
+        <td>${e.airline}<br/><span class="mono">${e.flight_number}</span></td>
+        <td><span class="reg-jur ${jCls}">${jLabel}</span></td>
+        <td><strong>${bd.total_claim.toLocaleString('en-CA',{minimumFractionDigits:2})} ${curr}</strong></td>
+        <td><span class="status-pill ${statusClass(e.status)}">${e.status}</span></td>
+        <td class="mono" style="font-size:0.71rem;">${new Date(e.created_at).toLocaleTimeString()}</td>
+        <td><a href="/api/extort/pdf/${e.claim_id}" target="_blank" class="btn btn-ghost btn-sm">PDF</a></td>
+      </tr>`;
+    }).join('');
+  } catch (e) { console.error(e); }
+}
+
+function setLoading(loading, msg='') {
+  const btn=document.getElementById('extract-btn'),sp=document.getElementById('spinner'),tx=document.getElementById('btn-text');
+  btn.disabled=loading; sp.classList.toggle('show',loading); tx.textContent=loading?msg:'Analyze My Claim';
+  if(!loading) setStatus('');
+}
+function setStatus(msg) { document.getElementById('status-msg').textContent=msg; }
+function statusClass(s) {
+  if(!s) return 's-default'; const u=s.toUpperCase();
+  if(u.includes('PENDING')) return 's-pending';
+  if(u.includes('DISPUTE')||u.includes('REJECT')) return 's-disputed';
+  if(u.includes('SETTLED')||u.includes('APPROVED')) return 's-settled';
+  if(u.includes('REVIEW')||u.includes('ESCALAT')) return 's-review';
+  return 's-default';
+}
+let toastTimer;
+function showToast(msg, isError=false) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.borderColor=isError?'rgba(239,68,68,0.4)':'rgba(16,185,129,0.3)';
+  t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),3800);
+}
+setInterval(async()=>{ if(document.getElementById('panel-ledger').classList.contains('active')) await loadLedger(); },15000);
+</script>
+</body>
+</html>
