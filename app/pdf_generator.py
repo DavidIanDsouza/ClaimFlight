@@ -189,6 +189,25 @@ def _kv_table_style() -> TableStyle:
     ])
 
 
+def _format_airport_code(code: str) -> str:
+    c = code.upper().strip()
+    mapping = {
+        "CYYZ": "YYZ (Toronto)", "YYZ": "YYZ (Toronto)",
+        "CYVR": "YVR (Vancouver)", "YVR": "YVR (Vancouver)",
+        "CYYC": "YYC (Calgary)", "YYC": "YYC (Calgary)",
+        "CYUL": "YUL (Montreal)", "YUL": "YUL (Montreal)",
+        "EDDF": "FRA (Frankfurt)", "FRA": "FRA (Frankfurt)",
+        "EGLL": "LHR (London)", "LHR": "LHR (London)",
+        "KATL": "ATL (Atlanta)", "ATL": "ATL (Atlanta)",
+        "KLAX": "LAX (Los Angeles)", "LAX": "LAX (Los Angeles)",
+    }
+    if c in mapping:
+        return mapping[c]
+    if len(c) == 4 and (c.startswith("C") or c.startswith("K")):
+        return c[1:]
+    return c
+
+
 def generate_demand_pdf(
     claim_id: str,
     flight: FlightDetails,
@@ -251,12 +270,15 @@ def generate_demand_pdf(
     ))
     story.append(Spacer(1, 4))
 
+    dep_fmt = _format_airport_code(flight.departure_airport)
+    arr_fmt = _format_airport_code(flight.arrival_airport)
+
     # -------------------------------------------------------------------------
     # Document title
     # -------------------------------------------------------------------------
     story.append(Paragraph("DEMAND FOR STATUTORY RESTITUTION", styles["doc_title"]))
     story.append(Paragraph(
-        f"FLIGHT {flight.flight_number} — {flight.departure_airport} → {flight.arrival_airport}",
+        f"FLIGHT {flight.flight_number} — {dep_fmt} → {arr_fmt}",
         styles["doc_subtitle"],
     ))
     story.append(Paragraph(
@@ -316,8 +338,8 @@ def generate_demand_pdf(
         ["Field", "Details"],
         ["Airline / Carrier", flight.airline],
         ["Flight Number", flight.flight_number],
-        ["Departure Airport (ICAO/IATA)", flight.departure_airport],
-        ["Arrival Airport (ICAO/IATA)", flight.arrival_airport],
+        ["Departure Airport", dep_fmt],
+        ["Arrival Airport", arr_fmt],
         ["Arrival City", flight.arrival_city],
         ["Scheduled Departure Date", flight.original_departure_date],
         ["Disruption Type", cancellation_str],

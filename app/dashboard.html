@@ -266,6 +266,106 @@
 
     #rebut-analysis-box { font-size: 0.8rem; line-height: 1.7; color: var(--text-muted); }
     #rebut-analysis-box h3 { font-size: 0.85rem; color: var(--text); margin: 10px 0 4px; }
+
+    /* Modal styles */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 8, 15, 0.8);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    .modal-overlay.show {
+      opacity: 1;
+    }
+    .modal-card {
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 520px;
+      box-shadow: var(--shadow);
+      padding: 24px;
+      transform: translateY(20px);
+      transition: transform 0.25s ease;
+    }
+    .modal-overlay.show .modal-card {
+      transform: translateY(0);
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-header h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .modal-close-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .modal-close-btn:hover {
+      color: var(--text);
+    }
+    .status-options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 520px) {
+      .status-options-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .status-option-btn {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.18s;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .status-option-btn:hover {
+      background: var(--surface-3);
+      border-color: var(--border-light);
+    }
+    .status-option-btn.selected {
+      background: var(--accent-light);
+      border-color: var(--accent);
+      box-shadow: 0 0 10px rgba(26,86,219,0.15);
+    }
+    .option-desc {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 20px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
   </style>
 </head>
 <body>
@@ -785,7 +885,7 @@ function renderResults(data) {
   document.getElementById('entitlement-currency').textContent = ent.entitlement_currency;
   document.getElementById('entitlement-reg').textContent = ent.regulation_name;
 
-  const rows = [['Airline',fd.airline],['Flight',fd.flight_number],['Departure',fd.departure_airport],['Arrival',fd.arrival_airport],['Destination',fd.arrival_city],['Date',fd.original_departure_date],['Status',fd.cancellation?'CANCELLED':fd.delay_duration_hours+'h delay'],['Reason',fd.reason||'Not disclosed'],['Analysis Source',`<span style="color:${data.extraction_source==='Local Heuristic Fallback'?'var(--amber)':'var(--green)'}">${data.extraction_source}</span>`]];
+  const rows = [['Airline',fd.airline],['Flight',fd.flight_number],['Departure',formatAirport(fd.departure_airport)],['Arrival',formatAirport(fd.arrival_airport)],['Destination',fd.arrival_city],['Date',fd.original_departure_date],['Status',fd.cancellation?'CANCELLED':fd.delay_duration_hours+'h delay'],['Reason',fd.reason||'Not disclosed'],['Analysis Source',`<span style="color:${data.extraction_source==='Local Heuristic Fallback'?'var(--amber)':'var(--green)'}">${data.extraction_source}</span>`]];
   document.getElementById('flight-table').innerHTML = rows.map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('');
 
   document.getElementById('regulation-text').textContent = ent.regulation_text;
@@ -812,18 +912,74 @@ function renderResults(data) {
   document.getElementById('results-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-async function reconcileClaim() {
-  if (!currentClaimId) { showToast('No active claim selected.'); return; }
-  const statuses = ['UNDER_REVIEW','DISPUTED','ESCALATED','APPROVED','SETTLED','CLOSED'];
-  const s = prompt('Update claim status for ' + currentClaimId + ':\n\n' + statuses.join('\n') + '\n\nEnter new status:');
-  if (!s) return;
+function formatAirport(code) {
+  if (!code) return '';
+  const raw = code.toUpperCase().trim();
+  const map = {
+    'CYYZ': 'YYZ (Toronto)', 'YYZ': 'YYZ (Toronto)',
+    'CYVR': 'YVR (Vancouver)', 'YVR': 'YVR (Vancouver)',
+    'CYYC': 'YYC (Calgary)', 'YYC': 'YYC (Calgary)',
+    'CYUL': 'YUL (Montreal)', 'YUL': 'YUL (Montreal)',
+    'EDDF': 'FRA (Frankfurt)', 'FRA': 'FRA (Frankfurt)',
+    'EGLL': 'LHR (London)', 'LHR': 'LHR (London)',
+    'KATL': 'ATL (Atlanta)', 'ATL': 'ATL (Atlanta)',
+    'KLAX': 'LAX (Los Angeles)', 'LAX': 'LAX (Los Angeles)',
+    'KJFK': 'JFK (New York)', 'JFK': 'JFK (New York)',
+    'KSFO': 'SFO (San Francisco)', 'SFO': 'SFO (San Francisco)',
+    'KORD': 'ORD (Chicago)', 'ORD': 'ORD (Chicago)'
+  };
+  if (map[raw]) return map[raw];
+  if (raw.length === 4 && (raw.startsWith('C') || raw.startsWith('K'))) {
+    const country = raw.startsWith('C') ? 'Canada' : 'USA';
+    return `${raw.slice(1)} (${country})`;
+  }
+  return raw;
+}
+
+let selectedStatus = null;
+
+function openStatusModal(claimId) {
+  const modal = document.getElementById('status-modal');
+  document.getElementById('modal-claim-id').textContent = claimId;
+  selectedStatus = null;
+  document.querySelectorAll('.status-option-btn').forEach(btn => btn.classList.remove('selected'));
+  modal.style.display = 'flex';
+  setTimeout(() => modal.classList.add('show'), 10);
+}
+
+function closeStatusModal() {
+  const modal = document.getElementById('status-modal');
+  modal.classList.remove('show');
+  setTimeout(() => modal.style.display = 'none', 250);
+}
+
+function selectStatusOption(status) {
+  selectedStatus = status;
+  document.querySelectorAll('.status-option-btn').forEach(btn => {
+    btn.classList.toggle('selected', btn.getAttribute('data-status') === status);
+  });
+}
+
+async function submitStatusChange() {
+  if (!selectedStatus) { showToast('Please select a status first.'); return; }
+  const claimId = document.getElementById('modal-claim-id').textContent;
   try {
-    const res = await fetch('/api/extort/reconcile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ claim_id: currentClaimId, new_status: s }) });
+    const res = await fetch('/api/extort/reconcile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ claim_id: claimId, new_status: selectedStatus }) });
     if (!res.ok) throw new Error((await res.json()).detail);
     const data = await res.json();
     showToast('Status updated to ' + data.status);
+    closeStatusModal();
     loadLedger();
+    const previewStatusEl = document.querySelector('#ledger-preview-table tr:last-child td:last-child');
+    if (previewStatusEl && currentClaimId === claimId) {
+      previewStatusEl.innerHTML = `<span class="status-pill ${statusClass(selectedStatus)}">${selectedStatus}</span>`;
+    }
   } catch (e) { showToast(e.message, true); }
+}
+
+function reconcileClaim() {
+  if (!currentClaimId) { showToast('No active claim selected.'); return; }
+  openStatusModal(currentClaimId);
 }
 
 async function loadLedger() {
@@ -874,5 +1030,51 @@ function showToast(msg, isError=false) {
 }
 setInterval(async()=>{ if(document.getElementById('panel-ledger').classList.contains('active')) await loadLedger(); },15000);
 </script>
+
+<!-- Status Reconciler Modal -->
+<div id="status-modal" class="modal-overlay" style="display:none;" onclick="if(event.target===this) closeStatusModal()">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>Update Claim Payout Status</h3>
+      <button class="modal-close-btn" onclick="closeStatusModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:18px;">
+        Select the current state of this statutory payout in the synthetic ledger for Claim ID: <strong id="modal-claim-id" style="color:#60a5fa;"></strong>
+      </p>
+      
+      <div class="status-options-grid">
+        <button class="status-option-btn" data-status="UNDER_REVIEW" onclick="selectStatusOption('UNDER_REVIEW')">
+          <span class="status-pill s-review">UNDER_REVIEW</span>
+          <span class="option-desc">Airline is reviewing documentation</span>
+        </button>
+        <button class="status-option-btn" data-status="DISPUTED" onclick="selectStatusOption('DISPUTED')">
+          <span class="status-pill s-disputed">DISPUTED</span>
+          <span class="option-desc">Excuse flagged by Rebuttal Engine</span>
+        </button>
+        <button class="status-option-btn" data-status="ESCALATED" onclick="selectStatusOption('ESCALATED')">
+          <span class="status-pill s-review">ESCALATED</span>
+          <span class="option-desc">Dispute escalated to regulatory body</span>
+        </button>
+        <button class="status-option-btn" data-status="APPROVED" onclick="selectStatusOption('APPROVED')">
+          <span class="status-pill s-settled">APPROVED</span>
+          <span class="option-desc">Statutory payout approved by carrier</span>
+        </button>
+        <button class="status-option-btn" data-status="SETTLED" onclick="selectStatusOption('SETTLED')">
+          <span class="status-pill s-settled">SETTLED</span>
+          <span class="option-desc">Payout remitted to passenger account</span>
+        </button>
+        <button class="status-option-btn" data-status="CLOSED" onclick="selectStatusOption('CLOSED')">
+          <span class="status-pill s-default">CLOSED</span>
+          <span class="option-desc">Dispute closed or withdrawn</span>
+        </button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeStatusModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" id="submit-status-btn" onclick="submitStatusChange()">Apply Change</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

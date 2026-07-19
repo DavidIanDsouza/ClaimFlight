@@ -454,6 +454,25 @@ Extract the flight details from this ticket/boarding pass image.
         return _fallback_image_extract(), "Local Image Parser Fallback"
 
 
+def _format_airport_code(code: str) -> str:
+    c = code.upper().strip()
+    mapping = {
+        "CYYZ": "YYZ (Toronto)", "YYZ": "YYZ (Toronto)",
+        "CYVR": "YVR (Vancouver)", "YVR": "YVR (Vancouver)",
+        "CYYC": "YYC (Calgary)", "YYC": "YYC (Calgary)",
+        "CYUL": "YUL (Montreal)", "YUL": "YUL (Montreal)",
+        "EDDF": "FRA (Frankfurt)", "FRA": "FRA (Frankfurt)",
+        "EGLL": "LHR (London)", "LHR": "LHR (London)",
+        "KATL": "ATL (Atlanta)", "ATL": "ATL (Atlanta)",
+        "KLAX": "LAX (Los Angeles)", "LAX": "LAX (Los Angeles)",
+    }
+    if c in mapping:
+        return mapping[c]
+    if len(c) == 4 and (c.startswith("C") or c.startswith("K")):
+        return c[1:]
+    return c
+
+
 def _fallback_rebuttal(rejection_text: str, flight: FlightDetails) -> tuple[str, str]:
     """Rule-based rebuttal generator fallback."""
     lower = rejection_text.lower()
@@ -485,10 +504,13 @@ def _fallback_rebuttal(rejection_text: str, flight: FlightDetails) -> tuple[str,
 - **Recommendation:** File formal escalation. Citing specific carrier duty of care violations.
 """
 
+    dep_fmt = _format_airport_code(flight.departure_airport)
+    arr_fmt = _format_airport_code(flight.arrival_airport)
+
     rebuttal_letter = f"""Dear {flight.airline} Claims Department,
 
 RE: FORMAL REBUTTAL AND ESCALATION OF RESTITUTION CLAIM
-Original Flight: {flight.flight_number} ({flight.departure_airport} to {flight.arrival_airport})
+Original Flight: {flight.flight_number} ({dep_fmt} to {arr_fmt})
 Departure Date: {flight.original_departure_date}
 Disruption: {"Cancelled" if flight.cancellation else f"Delayed by {flight.delay_duration_hours} hours"}
 
