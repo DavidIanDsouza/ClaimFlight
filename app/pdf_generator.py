@@ -208,6 +208,25 @@ def _format_airport_code(code: str) -> str:
     return c
 
 
+def _get_city_name(code: str) -> str:
+    c = code.upper().strip()
+    mapping = {
+        "CYYZ": "Toronto", "YYZ": "Toronto",
+        "CYVR": "Vancouver", "YVR": "Vancouver",
+        "CYYC": "Calgary", "YYC": "Calgary",
+        "CYUL": "Montreal", "YUL": "Montreal",
+        "EDDF": "Frankfurt", "FRA": "Frankfurt",
+        "EGLL": "London", "LHR": "London",
+        "KATL": "Atlanta", "ATL": "Atlanta",
+        "KLAX": "Los Angeles", "LAX": "Los Angeles",
+        "KJFK": "New York", "JFK": "New York",
+        "KSFO": "San Francisco", "SFO": "San Francisco",
+        "KORD": "Chicago", "ORD": "Chicago",
+    }
+    return mapping.get(c, c)
+
+
+
 def generate_demand_pdf(
     claim_id: str,
     flight: FlightDetails,
@@ -272,6 +291,7 @@ def generate_demand_pdf(
 
     dep_fmt = _format_airport_code(flight.departure_airport)
     arr_fmt = _format_airport_code(flight.arrival_airport)
+    dep_city = _get_city_name(flight.departure_airport)
 
     # -------------------------------------------------------------------------
     # Document title
@@ -384,7 +404,7 @@ def generate_demand_pdf(
         ],
         [
             "2. Emergency Accommodation Relief",
-            f"Mandatory hotel stay, {flight.arrival_city} ({flight.original_departure_date})",
+            f"Mandatory hotel stay, {dep_city} ({flight.original_departure_date})",
             f"{bd.accommodation_relief:,.2f}",
         ],
         [
@@ -437,7 +457,7 @@ def generate_demand_pdf(
         f"In accordance with the duty of care obligations imposed upon {flight.airline} "
         f"under {entitlement.regulation_name}, the carrier is obligated to provide or "
         f"reimburse the cost of emergency accommodation for affected passengers. "
-        f"The following verified accommodation inventory for <b>{flight.arrival_city}</b> "
+        f"The following verified accommodation inventory for <b>{dep_city}</b> "
         f"on <b>{flight.original_departure_date}</b> has been sourced via Stay22's real-time "
         f"aggregation platform (covering Booking.com, Expedia, Hotels.com, and VRBO). "
         f"The passenger hereby formally claims accommodation relief at prevailing market rates "
@@ -448,7 +468,7 @@ def generate_demand_pdf(
 
     stay22_data = [
         ["Accommodation Search", "Details"],
-        ["Destination City", flight.arrival_city],
+        ["Stranded City", dep_city],
         ["Check-in Date", flight.original_departure_date],
         ["Claim Reference (Affiliate ID)", f"hackthe6ix2026 (Stay22)"],
         ["Live Booking Search URL", Paragraph(f'<a href="{stay22_list_url}" color="#1a56db"><b>Book Hotels on Stay22</b></a>', styles["body"])],

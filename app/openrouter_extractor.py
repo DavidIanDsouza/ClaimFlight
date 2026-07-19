@@ -31,6 +31,52 @@ def _get_api_key() -> str | None:
     return api_key
 
 
+def _robust_json_loads(text: str) -> dict:
+    t = text.strip()
+    if "```" in t:
+        import re
+        match = re.search(r"```(?:json)?\s*([\s\S]+?)\s*```", t)
+        if match:
+            t = match.group(1).strip()
+    try:
+        return json.loads(t, strict=False)
+    except json.JSONDecodeError as e:
+        first_err = e
+
+    start = t.find("{")
+    end = t.rfind("}")
+    if start != -1 and end != -1 and end > start:
+        candidate = t[start:end+1]
+        try:
+            return json.loads(candidate, strict=False)
+        except json.JSONDecodeError:
+            pass
+
+    try:
+        cleaned = ""
+        in_quotes = False
+        escaped = False
+        for char in t:
+            if char == '"' and not escaped:
+                in_quotes = not in_quotes
+                cleaned += char
+            elif char == '\n' and in_quotes:
+                cleaned += '\\n'
+            elif char == '\t' and in_quotes:
+                cleaned += '\\t'
+            elif char == '\\' and not escaped:
+                escaped = True
+                cleaned += char
+            else:
+                escaped = False
+                cleaned += char
+        return json.loads(cleaned, strict=False)
+    except Exception:
+        pass
+
+    raise ValueError(f"Failed to parse JSON response: {first_err}")
+
+
 
 # ---------------------------------------------------------------------------
 # Extraction prompt
@@ -299,18 +345,7 @@ Airline email to parse:
         raw_text = response_json['choices'][0]['message']['content'].strip()
         logger.info(f"OpenRouter raw response: {raw_text[:200]}...")
 
-        try:
-            data = json.loads(raw_text)
-        except json.JSONDecodeError as e:
-            if "```" in raw_text:
-                import re
-                match = re.search(r"```(?:json)?\s*([\s\S]+?)\s*```", raw_text)
-                if match:
-                    data = json.loads(match.group(1))
-                else:
-                    raise ValueError(f"Could not parse OpenRouter JSON response: {e}") from e
-            else:
-                raise ValueError(f"Could not parse OpenRouter JSON response: {e}") from e
+        data = _robust_json_loads(raw_text)
 
         for field in ("departure_airport", "arrival_airport"):
             if field in data and data[field]:
@@ -422,18 +457,7 @@ Extract the flight details from this ticket/boarding pass image.
         raw_text = response_json['choices'][0]['message']['content'].strip()
         logger.info(f"OpenRouter multimodal response: {raw_text[:200]}...")
 
-        try:
-            data = json.loads(raw_text)
-        except json.JSONDecodeError as e:
-            if "```" in raw_text:
-                import re
-                match = re.search(r"```(?:json)?\s*([\s\S]+?)\s*```", raw_text)
-                if match:
-                    data = json.loads(match.group(1))
-                else:
-                    raise ValueError(f"Could not parse OpenRouter JSON response: {e}") from e
-            else:
-                raise ValueError(f"Could not parse OpenRouter JSON response: {e}") from e
+        data = _robust_json_loads(raw_text)
 
         for field in ("departure_airport", "arrival_airport"):
             if field in data and data[field]:
@@ -599,18 +623,7 @@ Provide your output in JSON format with these two fields:
 
         raw_text = response_json['choices'][0]['message']['content'].strip()
 
-        try:
-            data = json.loads(raw_text)
-        except json.JSONDecodeError as e:
-            if "```" in raw_text:
-                import re
-                match = re.search(r"```(?:json)?\s*([\s\S]+?)\s*```", raw_text)
-                if match:
-                    data = json.loads(match.group(1))
-                else:
-                    raise ValueError(f"Could not parse OpenRouter JSON response: {e}") from e
-            else:
-                raise ValueError(f"Could not parse OpenRouter JSON response: {e}") from e
+        data = _robust_json_loads(raw_text)
                 
         return data["loophole_analysis"], data["rebuttal_letter"]
 

@@ -135,6 +135,26 @@ async def get_favicon():
     raise HTTPException(status_code=404, detail="Favicon not found")
 
 
+_AIRPORT_CITY_MAP = {
+    "CYYZ": "Toronto", "YYZ": "Toronto",
+    "CYVR": "Vancouver", "YVR": "Vancouver",
+    "CYYC": "Calgary", "YYC": "Calgary",
+    "CYUL": "Montreal", "YUL": "Montreal",
+    "EDDF": "Frankfurt", "FRA": "Frankfurt",
+    "EGLL": "London", "LHR": "London",
+    "KATL": "Atlanta", "ATL": "Atlanta",
+    "KLAX": "Los Angeles", "LAX": "Los Angeles",
+    "KJFK": "New York", "JFK": "New York",
+    "KSFO": "San Francisco", "SFO": "San Francisco",
+    "KORD": "Chicago", "ORD": "Chicago",
+}
+
+
+def _get_departure_city(airport_code: str) -> str:
+    return _AIRPORT_CITY_MAP.get(airport_code.upper().strip(), airport_code)
+
+
+
 # ---------------------------------------------------------------------------
 # Health check
 # ---------------------------------------------------------------------------
@@ -189,12 +209,13 @@ async def extract_and_claim(request: ExtractRequest):
     logger.info(f"[{claim_id}] Entitlement: {entitlement.entitlement_amount} {entitlement.entitlement_currency}")
  
     # ----- Step 3: Stay22 URLs -----
+    dep_city = _get_departure_city(flight.departure_airport)
     stay22_embed = build_stay22_embed_url(
-        city=flight.arrival_city,
+        city=dep_city,
         checkin_date=flight.original_departure_date,
     )
     stay22_list = build_stay22_list_url(
-        city=flight.arrival_city,
+        city=dep_city,
         checkin_date=flight.original_departure_date,
     )
     logger.info(f"[{claim_id}] Stay22 URL: {stay22_embed}")
@@ -291,12 +312,13 @@ async def extract_image_and_claim(file: UploadFile = File(...)):
     logger.info(f"[{claim_id}] Entitlement: {entitlement.entitlement_amount} {entitlement.entitlement_currency}")
 
     # ----- Step 3: Stay22 URLs -----
+    dep_city = _get_departure_city(flight.departure_airport)
     stay22_embed = build_stay22_embed_url(
-        city=flight.arrival_city,
+        city=dep_city,
         checkin_date=flight.original_departure_date,
     )
     stay22_list = build_stay22_list_url(
-        city=flight.arrival_city,
+        city=dep_city,
         checkin_date=flight.original_departure_date,
     )
 
