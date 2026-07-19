@@ -901,7 +901,10 @@ function renderResults(data) {
 
   document.getElementById('pdf-download-btn').href  = data.pdf_download_url;
   document.getElementById('stay22-book-btn').href   = data.stay22_list_url;
-  document.getElementById('stay22-city-label').textContent = fd.arrival_city;
+  const depCityRaw = formatAirport(fd.departure_airport);
+  const cityMatch = depCityRaw.match(/\((.*?)\)/);
+  const depCity = cityMatch ? cityMatch[1] : depCityRaw;
+  document.getElementById('stay22-city-label').textContent = depCity;
   document.getElementById('stay22-loading').style.display  = 'flex';
   document.getElementById('stay22-iframe').src             = data.stay22_embed_url;
 
@@ -1002,7 +1005,10 @@ async function loadLedger() {
         <td><strong>${bd.total_claim.toLocaleString('en-CA',{minimumFractionDigits:2})} ${curr}</strong></td>
         <td><span class="status-pill ${statusClass(e.status)}">${e.status}</span></td>
         <td class="mono" style="font-size:0.71rem;">${new Date(e.created_at).toLocaleTimeString()}</td>
-        <td><a href="/api/extort/pdf/${e.claim_id}" target="_blank" class="btn btn-ghost btn-sm">PDF</a></td>
+        <td style="display: flex; gap: 6px; align-items: center;">
+          <a href="/api/extort/pdf/${e.claim_id}" target="_blank" class="btn btn-ghost btn-sm">PDF</a>
+          <button class="btn btn-ghost btn-sm" onclick="openStatusModal('${e.claim_id}')">Update</button>
+        </td>
       </tr>`;
     }).join('');
   } catch (e) { console.error(e); }
