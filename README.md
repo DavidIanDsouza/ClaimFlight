@@ -1,4 +1,4 @@
-# ✈️ ClaimFlight
+# ClaimFlight
 
 > **Hack the 6ix 2026** — Automated passenger rights engine and statutory restitution pipeline for delayed or cancelled flights.
 
@@ -9,10 +9,10 @@ If the airline rejects your claim, paste the rejection email into the **Dispute 
 ---
 
 ## Features & Integration Tracks
-- 🏨 **Stay22 (Peak Unhinged Big Brain)** — Embeds a dynamic accommodation widget based on arrival city and disruption date, formatted as a "Mandatory Accommodation Relief" deep-link in legal demand letters.
-- 💳 **Chexy (Make Every Payment Count)** — Generates a synthetic payment ledger tracking dispute state, complete with routing/account numbers and interactive claim reconciliation.
-- 🤖 **OpenRouter / Local Heuristics** — Dynamic routing using OpenRouter's free models with automatic local heuristic fallback to ensure 100% uptime even when upstream APIs are rate-limited.
-- 🛡️ **Dispute Rebuttal Engine** — Scans airline rejection emails for weather or mechanical maintenance excuses and auto-generates a formal rebuttal citing case law and regulatory frameworks.
+- **Stay22 (Peak Unhinged Big Brain)** — Embeds a dynamic accommodation widget based on arrival city and disruption date, formatted as a "Mandatory Accommodation Relief" deep-link in legal demand letters.
+- **Chexy (Make Every Payment Count)** — Generates a synthetic payment ledger tracking dispute state, complete with routing/account numbers and interactive claim reconciliation.
+- **OpenRouter / Local Heuristics** — Dynamic routing using OpenRouter's free models with automatic local heuristic fallback to ensure 100% uptime even when upstream APIs are rate-limited.
+- **Dispute Rebuttal Engine** — Scans airline rejection emails for weather or mechanical maintenance excuses and auto-generates a formal rebuttal citing case law and regulatory frameworks.
 
 ---
 
@@ -102,4 +102,4 @@ python test_extract.py
 
 ---
 
-> ⚠️ **Disclaimer:** ClaimFlight is a hackathon demonstration prototype. It does not constitute legal advice. All bank transfer actions are synthetic sandbox simulations. Built at Hack the 6ix 2026.
+> **Disclaimer:** ClaimFlight is a hackathon demonstration prototype. It does not constitute legal advice. All bank transfer actions are synthetic sandbox simulations. Built at Hack the 6ix 2026.
