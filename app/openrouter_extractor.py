@@ -330,7 +330,7 @@ Airline email to parse:
             "https://openrouter.ai/api/v1/chat/completions",
             headers=headers,
             json=payload,
-            timeout=30.0
+            timeout=10.0
         )
         if response.status_code != 200:
             raise RuntimeError(f"OpenRouter API error (HTTP {response.status_code}): {response.text}")
@@ -442,7 +442,7 @@ Extract the flight details from this ticket/boarding pass image.
             "https://openrouter.ai/api/v1/chat/completions",
             headers=headers,
             json=payload,
-            timeout=15.0
+            timeout=10.0
         )
         if response.status_code != 200:
             raise RuntimeError(f"OpenRouter API error (HTTP {response.status_code}): {response.text}")
@@ -609,7 +609,7 @@ Provide your output in JSON format with these two fields:
             "https://openrouter.ai/api/v1/chat/completions",
             headers=headers,
             json=payload,
-            timeout=25.0
+            timeout=12.0
         )
         if response.status_code != 200:
             raise RuntimeError(f"OpenRouter API error (HTTP {response.status_code}): {response.text}")
